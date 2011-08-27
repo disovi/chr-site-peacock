@@ -9,6 +9,10 @@
     },
     //"options_page": "options.html",
     "icons": {
-        "128": "images/icon.png"
-    }
+        "128": "images/peacock.png"
+    },
+    "permissions": [
+        "chrome://favicon/",
+        "history"
+    ]
 }

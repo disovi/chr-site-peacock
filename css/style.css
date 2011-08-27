@@ -1,23 +1,30 @@
 #infovis {
+    text-align: center;
+    vertical-align: middle;
     position: relative;
     width: 600px;
     height: 600px;
     margin: auto;
     overflow: hidden;
-    background-color: black;
+    background-color: #333;
+}
+
+.node {
+    background-color: #ffffff;
+    font-size: 14px;
+    margin-top: 0px;
+    margin-left: 0px;
+    align: left;
+}
+
+.favicon_img {
+    width: 16px;
+    height: 16px;
 }
 
 body {
     min-width: 357px;
     overflow-x: hidden;
-}
-
-img {
-    margin: 5px;
-    border: 2px solid black;
-    vertical-align: middle;
-    width: 75px;
-    height: 75px;
 }
 
 .jit-autoadjust-label {
