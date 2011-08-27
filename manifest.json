@@ -1,0 +1,14 @@
+{
+    "name": "Site Peacock",
+    "description": "Peacock knows a lot about your web history",
+    "version": "1.0",
+    "app": {
+        "launch": {
+            "local_path": "main.html"
+        }
+    },
+    //"options_page": "options.html",
+    "icons": {
+        "128": "images/icon.png"
+    }
+}
