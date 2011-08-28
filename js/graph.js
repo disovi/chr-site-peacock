@@ -37,9 +37,15 @@ function draw_graph(json_nodes, graph_style) {
         Tips: {
             enable: true,
             onShow: function(tip, node) {
+                var d = new Date(node.data.visitTime);
+                //d.setUTCMilliseconds(node.data.visitTime);
                 //display node info in tooltip
-                tip.innerHTML = "<div class=\"tip-title\"><b>" + node.name + "</b></div>"
-                    + "<div class=\"tip-text\">" + node.data.src + "</div>";
+                tip.innerHTML = "<div class=\"tip-title\"><b>" + node.name + "</b></div>" +
+                    "<div class=\"tip-text\">" +
+                        "<a href=\"" + node.data.src + "\">" + node.data.src + "</a>" +
+                        "<div class=\"date-time\">"+ d.format("dd/mm/yyyy HH-MM-ss") +
+                        "</div>" +
+                    "</div>";
             }
         },
         Edge: {
@@ -148,21 +154,24 @@ function create_test_nodes() {
         id: "node02",
         name: "GoodRoadsRu",
         data: {
-            src: "http://goodroads.ru"
+            src: "http://goodroads.ru",
+            visitTime: 1305472919588.649
         },
         children: [
             {
                 id: "node13",
                 name: "GayRu",
                 data: {
-                    src: "http://gay.ru"
+                    src: "http://gay.ru",
+                    visitTime: 1314529011668.186
                 },
                 children: [
                     {
                         id: "node24",
                         name: "TheJitOrg",
                         data: {
-                            src: "http://thejit.org"
+                            src: "http://thejit.org",
+                            visitTime: 12345
                         },
                         children: []
                     },
@@ -170,7 +179,8 @@ function create_test_nodes() {
                         id: "node222",
                         name: "HabrahabrRu",
                         data: {
-                            src: "http://habrahabr.ru"
+                            src: "http://habrahabr.ru",
+                            visitTime: 12345
                         },
                         children: []
                     }
@@ -180,14 +190,16 @@ function create_test_nodes() {
                 id: "node125",
                 name: "MailRu",
                 data: {
-                    src: "http://mail.ru"
+                    src: "http://mail.ru",
+                    visitTime: 12345
                 },
                 children: [
                     {
                         id: "node226",
                         name: "VkontakteRu",
                         data: {
-                            src: "http://vkontakte.ru"
+                            src: "http://vkontakte.ru",
+                            visitTime: 12345
                         },
                         children: []
                     },
@@ -195,7 +207,8 @@ function create_test_nodes() {
                         id: "node237",
                         name: "SexCom",
                         data: {
-                            src: "http://sex.com"
+                            src: "http://sex.com",
+                            visitTime: 12345
                         },
                         children: []
                     }
