@@ -1,6 +1,19 @@
-function GraphStyle(node_width, node_height) {
+function GraphStyle(node_width, node_height, href_length, title_length) {
     this.node_width = node_width;
     this.node_height = node_height;
+    this.href_length = href_length;
+    this.title_length = title_length;
+}
+
+function trim_string(string, trim_size) {
+    var new_string;
+    if (string.length > trim_size) {
+        new_string = string.substring(0, trim_size - 3);
+        new_string += '...';
+    }
+    else
+        new_string = string;
+    return new_string;
 }
 
 function draw_graph(json_nodes, graph_style) {
@@ -40,9 +53,10 @@ function draw_graph(json_nodes, graph_style) {
                 var d = new Date(node.data.visitTime);
                 //d.setUTCMilliseconds(node.data.visitTime);
                 //display node info in tooltip
-                tip.innerHTML = "<div class=\"tip-title\"><b>" + node.name + "</b></div>" +
+                tip.innerHTML = "<div class=\"tip-title\"><b>" + trim_string(node.name, graph_style.title_length) + "</b></div>" +
                     "<div class=\"tip-text\">" +
-                        "<a href=\"" + node.data.src + "\">" + node.data.src + "</a>" +
+                        "<a href=\"" + node.data.src + "\">" + trim_string(node.data.src, graph_style.href_length) + "</a>" +
+                        "<br>" + node.data.transition +
                         "<div class=\"date-time\">"+ d.format("dd/mm/yyyy HH-MM-ss") +
                         "</div>" +
                     "</div>";
@@ -162,7 +176,7 @@ function create_test_nodes() {
                 id: "node13",
                 name: "GayRu",
                 data: {
-                    src: "http://gay.ru",
+                    src: "http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=text-wrap#pq=text-wrap&hl=ru&cp=9&gs_id=19&xhr=t&q=css+word+wrap&pf=p&sclient=psy&newwindow=1&source=hp&pbx=1&oq=css+word+&aq=0&aqi=g5&aql=&gs_sm=&gs_upl=&bav=on.2,or.r_gc.r_pw.&fp=381d983201ad396e&biw=1366&bih=653",
                     visitTime: 1314529011668.186
                 },
                 children: [
