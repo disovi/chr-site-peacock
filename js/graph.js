@@ -38,8 +38,8 @@ function draw_graph(json_nodes, graph_style) {
             enable: true,
             onShow: function(tip, node) {
                 //display node info in tooltip
-                tip.innerHTML = "<div class=\"tip-title\">" + node.name + "</div>"
-                    + "<div class=\"tip-text\"><b>src:</b> " + node.data.src + "</div>";
+                tip.innerHTML = "<div class=\"tip-title\"><b>" + node.name + "</b></div>"
+                    + "<div class=\"tip-text\">" + node.data.src + "</div>";
             }
         },
         Edge: {
@@ -124,7 +124,7 @@ function draw_graph(json_nodes, graph_style) {
         //override the Edge global style properties.
         onBeforePlotLine: function(adj) {
             if (adj.nodeFrom.selected && adj.nodeTo.selected) {
-                adj.data.$color = "#eed";
+                adj.data.$color = "#FF0AFF";
                 adj.data.$lineWidth = 3;
             }
             else {
