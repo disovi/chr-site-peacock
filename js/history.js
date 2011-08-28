@@ -1,46 +1,39 @@
 
-function buildHistoryList(divName, data) {
-  var div = document.getElementById(divName);
-
-  var ul = document.createElement('ul');
-  div.appendChild(ul);
-
-  for (var i = 0, ie = data.length; i < ie; ++i) {
-    var a = document.createElement('a');
-    a.appendChild(document.createTextNode(data[i]));
-      
-    var li = document.createElement('li');
-    li.appendChild(a);
-
-    ul.appendChild(li);
-  }
-}
-
-function getHistoryItems(callback) {
+function getHistoryNodes(callback)  {
   var maxResults = 100;
   var microsecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-  var microsecondsPerHour = 1000 * 10 * 60;
-  var oneWeekAgo = (new Date).getTime() - microsecondsPerWeek;
-  var oneHourAgo = (new Date).getTime() - microsecondsPerHour;
+  var microsecondsPerHour = 1000 * 60 * 60;
+  var microsecondsPerMinute = 1000 * 60;
 
   chrome.history.search({
       'text'      : '',
-      'startTime' : oneHourAgo,
+      'startTime' : (new Date).getTime() - microsecondsPerMinute,
       'maxResults': maxResults
     },
-    callback);
+    function (historyItems) {
+        getVisits(historyItems, callback); 
+    });
 }
 
 function getVisits(historyItems, callback) {
     var numRequestsOutstanding = historyItems.length;
     var expectedAncestors = {};
-    var nodes = {};
-    var trees = [];
+    var addedAncestors = {};
 
-    var processVisits = function(url, visitItems) {
+    var tree = {
+        'id' : 0,
+        'children' : []
+    };
+
+    // process visits for URL
+    var processVisits = function(url, name, visitItems) {
+
+        console.log(url);
+        console.log(name);
 
         // disable this URL for debug reasons
-        if (url == 'chrome-extension://fmalidfielikedelgijoglpchhholnkh/main.html') {
+        // XXX
+        if (url.indexOf('chrome-extension') == 0) {
             --numRequestsOutstanding;
             return;
         }
@@ -48,30 +41,37 @@ function getVisits(historyItems, callback) {
         for (var i = 0; i < visitItems.length;  i++) {
             var visitItem = visitItems[i];
 
-            if (visitItem.transition == "reload") {
-                continue;
-            }
+            // XXX
+            //if (visitItem.transition == "reload") {
+            //    continue;
+            //}
 
             var newNode = {
-                children : [],
-                url : url
+                'id' : visitItem.visitId,
+                'name' : name,
+                'data' : {
+                    'src' : url,
+                    'visitTime' : visitItem.visitTime,
+                    'transition' : visitItem.transition 
+                },
+                'children' : []
             };
 
-            nodes[visitItem.visitId] = newNode;
+            addedAncestors[visitItem.visitId] = newNode;
 
             // link with ancestor
             var ancestorId = visitItem.referringVisitId;
-
-            if (ancestorId == "0") {
-                // this node has no ancestor
-                trees.push(newNode);
+            if (ancestorId == "0" || visitItem.transition != 'link') {
+                // this node has no referrer, pushing it to the second level of main tree
+                tree.children.push(newNode);
             } else {
-                var ancestorNode = nodes[ancestorId];
+                // this node has referrer...
+                var ancestorNode = addedAncestors[ancestorId];
                 if (ancestorNode) {
-                    // 1)ancestor already exists
+                    // 1) ...and ancestor already exists
                     ancestorNode.children.push(newNode);
                 } else {
-                    // 2)make ancestor expected by it's children
+                    // 2) ... and ancestor doesn't exist yet, make ancestor expected by it's children
                     if (!expectedAncestors[ancestorId]) {
                         expectedAncestors[ancestorId] = [];
                     }
@@ -91,27 +91,27 @@ function getVisits(historyItems, callback) {
         }
         
         if (!--numRequestsOutstanding) {
-            console.log(nodes);
-            console.log(expectedAncestors);
-
-            callback(trees);
+            callback(tree);
         }
     };
 
     for (var i = 0; i < historyItems.length; ++i) {
-        var url = historyItems[i].url;
-        var processVisitsWithUrl = function(url) {
+        var processVisitsWithUrl = function(url, title) {
             return function(visitItems) {
-                processVisits(url, visitItems);
+                processVisits(url, title, visitItems);
             };
         };
         chrome.history.getVisits(
-            {url: url},
-            processVisitsWithUrl(url));
+            {
+                url: historyItems[i].url
+            },
+            processVisitsWithUrl(
+                historyItems[i].url,
+                historyItems[i].title));
     }
 
     if (!numRequestsOutstanding) {
-        callback(trees);
+        callback(tree);
     }
 }
 

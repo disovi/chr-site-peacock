@@ -4,6 +4,7 @@
     </style>
     <script src="js/jit-yc.js" type="text/javascript"></script>
     <script src="js/graph.js" type="text/javascript"></script>
+    <script src="js/history.js" type="text/javascript"></script>
     <script src="js/date.format.js" type="text/javascript"></script>
 </head>
 <body>
@@ -12,7 +13,11 @@
 </div>
 <script type="text/javascript">
     var style = new GraphStyle(110,30, 30, 25);
-    draw_graph(create_test_nodes(),style);
+    getHistoryNodes(
+    function (historyNodes) {
+        console.log(historyNodes);
+        draw_graph(historyNodes, style);
+    });
 </script>
 </body>
 
