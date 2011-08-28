@@ -12,10 +12,12 @@
 .node {
     border: 1px solid black;
     background-color: #ffffff;
+    margin-right: 10px;
+    overflow: hidden;
+    white-space: nowrap;
     font-size: 14px;
     margin-top: 0px;
     margin-left: 0px;
-    align: left;
 }
 
 .tip-title {
@@ -42,8 +44,15 @@
 }
 
 .favicon_img {
+    align: bottom;
     width: 16px;
     height: 16px;
+}
+
+.label_data {
+    margin-top: 5px;
+    margin-left: 2px;
+    margin-right: 2px;
 }
 
 body {

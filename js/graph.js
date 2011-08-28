@@ -26,7 +26,7 @@ function draw_graph(json_nodes, graph_style) {
         //id of viz container element
         injectInto: 'infovis',
         //set duration for the animation
-        duration: 800,
+        duration: 200,
         //set animation transition type
         transition: $jit.Trans.Quart.easeInOut,
         //set distance between node and its children
@@ -83,7 +83,7 @@ function draw_graph(json_nodes, graph_style) {
         onCreateLabel: function(label, node) {
             label.id = node.id;
             var img_src = "chrome://favicon/" + node.data.src;
-            label.innerHTML = "<img class=\"favicon_img\" src=\"" + img_src + "\"> " + node.name;
+            label.innerHTML = "<div class=\"label_data\"><img class=\"favicon_img\" src=\"" + img_src + "\"> " + node.name + "</div>";
             label.oncontextmenu = function() {
                 console.log('right click');
                 chrome.tabs.create({"url":node.data.src});
@@ -98,13 +98,11 @@ function draw_graph(json_nodes, graph_style) {
             //set label styles
             var style = label.style;
             style.width = graph_style.node_width - 2 + 'px';
-            style.height = graph_style.node_height - 2 + 'px';
+            style.height = graph_style.node_height + 'px';
             style.cursor = 'pointer';
             style.color = '#000';
             //style.fontSize = graph_style.node_height - 6 + 'px';
             style.family = 'Times New Roman';
-            style.paddingTop = '2px';
-            style.paddingLeft = '2px';
             style.verticalAlign =  'top';
             style.textAlign = 'left';
             style.align = 'left';
@@ -174,7 +172,7 @@ function create_test_nodes() {
         children: [
             {
                 id: "node13",
-                name: "GayRu",
+                name: "wwwwwwwwwwwqeqewqeqeqeqeqeqeqeqeqeeqewqeqeqeqeqeqeqeqeqe",
                 data: {
                     src: "http://www.google.ru/search?sourceid=chrome&ie=UTF-8&q=text-wrap#pq=text-wrap&hl=ru&cp=9&gs_id=19&xhr=t&q=css+word+wrap&pf=p&sclient=psy&newwindow=1&source=hp&pbx=1&oq=css+word+&aq=0&aqi=g5&aql=&gs_sm=&gs_upl=&bav=on.2,or.r_gc.r_pw.&fp=381d983201ad396e&biw=1366&bih=653",
                     visitTime: 1314529011668.186
