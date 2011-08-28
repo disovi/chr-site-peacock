@@ -4,32 +4,32 @@ function getHistoryNodes(callback)  {
   var microsecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
   var microsecondsPerHour = 1000 * 60 * 60;
   var microsecondsPerMinute = 1000 * 60;
-
+  
+  var startTime = (new Date).getTime() - microsecondsPerMinute * 10;
+  
   chrome.history.search({
       'text'      : '',
-      'startTime' : (new Date).getTime() - microsecondsPerMinute,
+      'startTime' : startTime, 
       'maxResults': maxResults
     },
     function (historyItems) {
-        getVisits(historyItems, callback); 
+        getVisits(historyItems, startTime, callback); 
     });
 }
 
-function getVisits(historyItems, callback) {
+function getVisits(historyItems, startTime, callback) {
     var numRequestsOutstanding = historyItems.length;
     var expectedAncestors = {};
     var addedAncestors = {};
 
     var tree = {
         'id' : 0,
+        'name' : "Peacock",
         'children' : []
     };
 
     // process visits for URL
-    var processVisits = function(url, name, visitItems) {
-
-        console.log(url);
-        console.log(name);
+    var processVisits = function(name, url, notOlderThen, visitItems) {
 
         // disable this URL for debug reasons
         // XXX
@@ -41,10 +41,11 @@ function getVisits(historyItems, callback) {
         for (var i = 0; i < visitItems.length;  i++) {
             var visitItem = visitItems[i];
 
-            // XXX
-            //if (visitItem.transition == "reload") {
-            //    continue;
-            //}
+            if (visitItem.visitTime < notOlderThen) {
+                continue;
+            }
+
+            console.log(name + '  ' + visitItem.transition);
 
             var newNode = {
                 'id' : visitItem.visitId,
@@ -91,23 +92,25 @@ function getVisits(historyItems, callback) {
         }
         
         if (!--numRequestsOutstanding) {
+            //for (var key in expectedAncestors) {
+            //    tree.children.push(expectedAncestors[key]);
+            //}
+
             callback(tree);
         }
     };
 
     for (var i = 0; i < historyItems.length; ++i) {
-        var processVisitsWithUrl = function(url, title) {
+        var processVisitsWithUrl = function(name, url, notOlderThen) {
             return function(visitItems) {
-                processVisits(url, title, visitItems);
+                processVisits(name, url, notOlderThen, visitItems);
             };
         };
         chrome.history.getVisits(
             {
                 url: historyItems[i].url
             },
-            processVisitsWithUrl(
-                historyItems[i].url,
-                historyItems[i].title));
+            processVisitsWithUrl(historyItems[i].title, historyItems[i].url, startTime));
     }
 
     if (!numRequestsOutstanding) {
