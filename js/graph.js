@@ -57,8 +57,7 @@ function draw_graph(json_nodes, graph_style) {
                     "<div class=\"tip-text\">" +
                         "<a href=\"" + node.data.src + "\">" + trim_string(node.data.src, graph_style.href_length) + "</a>" +
                         "<br>" + node.data.transition +
-                        "<div class=\"date-time\">"+ d.format("dd/mm/yyyy HH-MM-ss") +
-                        "</div>" +
+                        "<div class=\"date-time\">"+ d.format("dd/mm/yyyy HH-MM-ss") + "</div>" +
                     "</div>";
             }
         },
@@ -83,7 +82,7 @@ function draw_graph(json_nodes, graph_style) {
         onCreateLabel: function(label, node) {
             label.id = node.id;
             var img_src = "chrome://favicon/" + node.data.src;
-            label.innerHTML = "<div class=\"label_data\"><img class=\"favicon_img\" src=\"" + img_src + "\"> " + node.name + "</div>";
+            label.innerHTML = "<div class=\"lab el_data\"><img class=\"favicon_img\" src=\"" + img_src + "\"> " + node.name + "</div>";
             label.oncontextmenu = function() {
                 console.log('right click');
                 chrome.tabs.create({"url":node.data.src});

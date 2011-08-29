@@ -1,120 +1,112 @@
 
-function getHistoryNodes(callback)  {
-  var maxResults = 100;
-  var microsecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-  var microsecondsPerHour = 1000 * 60 * 60;
-  var microsecondsPerMinute = 1000 * 60;
-  
-  var startTime = (new Date).getTime() - microsecondsPerMinute * 10;
-  
-  chrome.history.search({
-      'text'      : '',
-      'startTime' : startTime, 
-      'maxResults': maxResults
-    },
-    function (historyItems) {
-        getVisits(historyItems, startTime, callback); 
-    });
+// params:
+//  startTime
+function getHistoryNodesTree(params, callback)  {
+    getHistoryNodesDict(
+        params,
+        function(historyNodesDict) {
+            callback(createHistoryNodesTree(historyNodesDict));
+        }
+    )
 }
 
-function getVisits(historyItems, startTime, callback) {
-    var numRequestsOutstanding = historyItems.length;
-    var expectedAncestors = {};
-    var addedAncestors = {};
+// params:
+//  startTime
+function getHistoryNodesDict(params, callback) {
+    var historyNodesDict = {};
+    var outstandingRequests = 0;
 
-    var tree = {
-        'id' : 0,
-        'name' : "Peacock",
-        'children' : []
-    };
-
-    // process visits for URL
-    var processVisits = function(name, url, notOlderThen, visitItems) {
-
-        // disable this URL for debug reasons
-        // XXX
-        if (url.indexOf('chrome-extension') == 0) {
-            --numRequestsOutstanding;
-            return;
-        }
-        
-        for (var i = 0; i < visitItems.length;  i++) {
-            var visitItem = visitItems[i];
-
-            if (visitItem.visitTime < notOlderThen) {
-                continue;
-            }
-
-            console.log(name + '  ' + visitItem.transition);
-
-            var newNode = {
-                'id' : visitItem.visitId,
-                'name' : name,
-                'data' : {
-                    'src' : url,
-                    'visitTime' : visitItem.visitTime,
-                    'transition' : visitItem.transition 
-                },
-                'children' : []
-            };
-
-            addedAncestors[visitItem.visitId] = newNode;
-
-            // link with ancestor
-            var ancestorId = visitItem.referringVisitId;
-            if (ancestorId == "0" || visitItem.transition != 'link') {
-                // this node has no referrer, pushing it to the second level of main tree
-                tree.children.push(newNode);
-            } else {
-                // this node has referrer...
-                var ancestorNode = addedAncestors[ancestorId];
-                if (ancestorNode) {
-                    // 1) ...and ancestor already exists
-                    ancestorNode.children.push(newNode);
-                } else {
-                    // 2) ... and ancestor doesn't exist yet, make ancestor expected by it's children
-                    if (!expectedAncestors[ancestorId]) {
-                        expectedAncestors[ancestorId] = [];
-                    }
-                    expectedAncestors[ancestorId].push(newNode);
-                }
-            }
-            
-            // link with children
-            var children = expectedAncestors[visitItem.visitId];
-            if (children) {
-                // there is some children waiting for this node
-                children.forEach(function(child) {
-                    newNode.children.push(child);
-                });
-                delete expectedAncestors[visitItem.visitId];
-            }
-        }
-        
-        if (!--numRequestsOutstanding) {
-            //for (var key in expectedAncestors) {
-            //    tree.children.push(expectedAncestors[key]);
-            //}
-
-            callback(tree);
-        }
-    };
-
-    for (var i = 0; i < historyItems.length; ++i) {
-        var processVisitsWithUrl = function(name, url, notOlderThen) {
-            return function(visitItems) {
-                processVisits(name, url, notOlderThen, visitItems);
-            };
-        };
-        chrome.history.getVisits(
+    (function getHistoryItems() {
+        chrome.history.search(
             {
-                url: historyItems[i].url
+                'text' : '',
+                'startTime' : params.startTime,
+                'maxResults': 100
             },
-            processVisitsWithUrl(historyItems[i].title, historyItems[i].url, startTime));
+            processHistoryItems);
+    })();
+
+    function processHistoryItems(historyItems) {
+        outstandingRequests = historyItems.length;
+        historyItems.forEach(function(historyItem) {
+            chrome.history.getVisits(
+                {
+                    url: historyItem.url
+                },
+                function (visitItems) {
+                    appendVisitItems(historyItem, visitItems);
+                    outstandingRequests--;
+                    tryToReturn();
+                });
+        });
+        tryToReturn();
+    }
+    
+    function appendVisitItems(historyItem, visitItems) {
+        visitItems.forEach(function(visitItem) {
+            historyNodesDict[visitItem.visitId] =
+            {
+                    'id'               : visitItem.id,
+                    'visitId'          : visitItem.visitId,
+                    'referringVisitId' : visitItem.referringVisitId,
+                    'transition'       : visitItem.transition,
+                    'name'             : historyItem.title,
+                    'data'             : {
+                        'src'          : historyItem.url,
+                        'visitTime'    : visitItem.visitTime,
+                        'transition'   : visitItem.transition
+                    },
+                    'children'         : []
+             }
+        });
     }
 
-    if (!numRequestsOutstanding) {
-        callback(tree);
+    function tryToReturn() {
+        if (outstandingRequests == 0) {
+            callback(historyNodesDict);
+        }
     }
 }
 
+function createHistoryNodesTree(historyNodesDict) {
+    
+    historyNodesDict['0'] =
+    {
+        'id'       : 0,
+        'name'     : 'Peacock',
+        'children' : []
+    }
+
+    for (var visitId in historyNodesDict) {
+        if (visitId == 0) {
+            continue;
+        }
+
+        var node = historyNodesDict[visitId];
+        var ancestorId;
+
+        switch (node.transition) {
+
+        case 'reload':
+        case 'link':
+            /*
+            if (node.referringVisitId == '0') {
+                ancestorId = node.visitId - 1;
+            } else {
+                ancestorId = node.referringVisitId;
+            }
+            */
+            ancestorId = node.referringVisitId;
+            break;
+
+        default:
+            ancestorId = '0'; // root
+        }
+
+        if (historyNodesDict[ancestorId]) {
+            historyNodesDict[ancestorId].children.push(node);
+        }
+    }
+
+    return historyNodesDict['0'];
+}
